@@ -57,6 +57,8 @@ void AppPlatform_sdl_base::_init(std::string storageDir, SDL_Window *window)
 
 	// Look for a pre-existing controller
 	_controller = findGameController();
+
+	clearDiff();
 }
 
 void AppPlatform_sdl_base::initSoundSystem()
@@ -171,16 +173,6 @@ int AppPlatform_sdl_base::getScreenHeight() const
 
 void AppPlatform_sdl_base::recenterMouse()
 {
-	// Note. The only reason we do it this way instead of
-	// using the Mouse class is because, after SDL_WarpMouseInWindow,
-	// we'll get an event on our window telling us "hey, the
-	// user has moved their cursor back to the center! Move
-	// the camera back as well", causing a camera that just
-	// refuses to move
-	int w = 0, h = 0;
-	SDL_GetWindowSize(_window, &w, &h);
-	SDL_WarpMouseInWindow(_window, w / 2, h / 2);
-	//Mouse::feed(BUTTON_NONE, false, w / 2, h / 2);
 }
 
 void AppPlatform_sdl_base::setMouseGrabbed(bool b)
@@ -192,12 +184,13 @@ void AppPlatform_sdl_base::setMouseGrabbed(bool b)
 	 * https://github.com/libsdl-org/SDL/issues/6002 (I'm not sure if this is the right issue, I just updated SDL after seeing this and it fixed the above problem.)
 	 **/
 	SDL_SetRelativeMouseMode(b ? SDL_TRUE : SDL_FALSE);
+	clearDiff();
 }
 
 void AppPlatform_sdl_base::setMouseDiff(int x, int y)
 {
-	xrel = x;
-	yrel = y;
+	xrel += x;
+	yrel += y;
 }
 
 void AppPlatform_sdl_base::getMouseDiff(int& x, int& y)
