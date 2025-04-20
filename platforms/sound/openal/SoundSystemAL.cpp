@@ -343,5 +343,3 @@ void SoundSystemAL::stopEngine()
     // Mark as unloaded
     _initialized = false;
 }
-
-#endif

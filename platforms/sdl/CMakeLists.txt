@@ -55,22 +55,20 @@ if(TARGET SDL2::SDL2main)
 endif()
 
 # OpenGL
-if(NOT EMSCRIPTEN AND NOT ANDROID AND NOT WIN32)
-    option(USE_GLES1_COMPATIBILITY_LAYER "Whether To Enable The GLESv1_CM Compatibility Layer" TRUE)
-else()
-    set(USE_GLES1_COMPATIBILITY_LAYER TRUE CACHE BOOL "" FORCE)
-endif()
-if(USE_GLES1_COMPATIBILITY_LAYER)
-    add_subdirectory(../../thirdparty/gles-compatibility-layer gles-compatibility-layer)
-    target_link_libraries(reminecraftpe-core PUBLIC gles-compatibility-layer)
-    target_compile_definitions(reminecraftpe-core PUBLIC USE_GLES1_COMPATIBILITY_LAYER)
-    if(EMSCRIPTEN)
-        # Use WebGL 2
-        target_link_options(reminecraftpe-core PUBLIC -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2)
-    endif()
+if(ANDROID)
+    find_library(GLES_LIB GLESv1_CM REQUIRED)
+    target_link_libraries(reminecraftpe-core PUBLIC "${GLES_LIB}")
+    target_compile_definitions(reminecraftpe-core PUBLIC USE_GLES)
 else()
     find_package(OpenGL REQUIRED)
     target_link_libraries(reminecraftpe-core PUBLIC OpenGL::GL)
+    if(EMSCRIPTEN)
+        # Use WebGL 2
+        target_link_options(reminecraftpe-core PUBLIC
+            -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2
+            -sLEGACY_GL_EMULATION -sGL_FFP_ONLY
+        )
+    endif()
 endif()
 
 # WASM

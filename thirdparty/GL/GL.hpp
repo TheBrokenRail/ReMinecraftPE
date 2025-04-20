@@ -11,15 +11,13 @@
 #include <common/Utils.hpp> // it includes GL/gl.h
 #include <compat/PlatformDefinitions.h>
 
-#ifdef USE_NATIVE_ANDROID
+#if USE_NATIVE_ANDROID
 	#define USE_GLES
 	#include <EGL/egl.h>
 #endif
 
-#ifdef USE_GLES1_COMPATIBILITY_LAYER
-	#define USE_GLES // GLES or its compatibility layer.
-#endif
-
+// Disable this on OpenGL ES 2+
+#define USE_GL_NORMAL_LIGHTING
 
 #ifdef USE_GLES
 	#if MC_PLATFORM_IOS
@@ -38,9 +36,6 @@
 
 	#define USE_GL_ORTHO_F
 #else
-	// Standard OpenGL supports normals and lighting, OpenGL ES doesn't
-	#define USE_GL_NORMAL_LIGHTING
-
 	#ifdef USE_SDL
 		#define USE_OPENGL_2_FEATURES
 
@@ -137,7 +132,7 @@ void xglDrawArrays(GLenum mode, GLint first, GLsizei count);
 
 #endif
 
-#if defined(_WIN32) && !defined(USE_GLES1_COMPATIBILITY_LAYER)
+#if defined(_WIN32)
 // Win32 defines xglOrthof as a regular function
 #elif defined USE_GL_ORTHO_F
 #define xglOrthof glOrthof

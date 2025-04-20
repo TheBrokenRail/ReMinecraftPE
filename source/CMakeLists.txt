@@ -322,3 +322,16 @@ else()
     target_link_libraries(zlib-interface INTERFACE ZLIB::ZLIB)
 endif()
 target_link_libraries(reminecraftpe-core PUBLIC zlib-interface)
+
+# Sound Data
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../sound_data/sounds.h")
+    if(NOT DEFINED ENV{CI})
+        message(WARNING "Missing sound data! Did you run tools/grabsounds.py?")
+    endif()
+    target_compile_definitions(reminecraftpe-core PRIVATE MISSING_SOUND_DATA)
+endif()
+
+# OpenGL Support Code
+if(WIN32)
+    target_sources(reminecraftpe-core PRIVATE ../thirdparty/GL/GLExt.cpp)
+endif()

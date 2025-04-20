@@ -321,10 +321,10 @@ int main(int argc, char *argv[])
 
 	// Configure OpenGL ES Context
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-#ifdef USE_GLES1_COMPATIBILITY_LAYER
+#ifdef USE_GLES
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 #else
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -372,7 +372,7 @@ int main(int argc, char *argv[])
 		}
     }
 
-#if defined(_WIN32) && !defined(USE_GLES1_COMPATIBILITY_LAYER)
+#if defined(_WIN32)
 	xglInit();
 
 	if (!xglInitted())
@@ -382,11 +382,6 @@ int main(int argc, char *argv[])
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "OpenGL Error", GL_ERROR_MSG, window);
 		exit(EXIT_FAILURE);
 	}
-#endif
-
-	// Setup Compatibility Layer If Needed
-#ifdef USE_GLES1_COMPATIBILITY_LAYER
-	init_gles_compatibility_layer(SDL_GL_GetProcAddress);
 #endif
 
 	// Setup Teardown

@@ -19,7 +19,6 @@ add_executable(reminecraftpe WIN32
     LoggerWin32.cpp
     AppPlatform_win32.cpp
     main.cpp
-    ../../thirdparty/GL/GLExt.cpp
 )
 
 # Core

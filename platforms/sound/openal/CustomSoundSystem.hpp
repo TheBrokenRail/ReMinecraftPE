@@ -1,6 +1,5 @@
 #pragma once
 
-
 #ifdef __APPLE__
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
@@ -15,7 +14,6 @@
 #endif
 #endif
 
-#include <string>
 #include <vector>
 #include <map>
 
@@ -57,5 +55,3 @@ private:
 	Vec3 _lastListenerPos;
     float _listenerVolume;
 };
-
-#endif
