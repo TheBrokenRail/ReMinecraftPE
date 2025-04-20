@@ -53,8 +53,9 @@ jobs:
             uses: melusina-org/setup-macports@v1
           - name: Install Dependencies
             run: |
-                sudo port install libsdl2 +universal
-                sudo port install libpng +universal
+                port selfupdate
+                port install libsdl2 +universal
+                port install libpng +universal
           - name: Build macOS Archive
             run: |
                 ln -s sound/openal platforms/openal # Please someone fix this properly later.
