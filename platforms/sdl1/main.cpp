@@ -9,10 +9,10 @@ typedef AppPlatform_sdl UsedAppPlatform;
 #include "client/app/NinecraftApp.hpp"
 #include "client/player/input/Multitouch.hpp"
 
-UsedAppPlatform* g_pAppPlatform;
-NinecraftApp* g_pApp;
+static UsedAppPlatform* g_pAppPlatform;
+static NinecraftApp* g_pApp;
 
-SDL_Surface* screen = NULL;
+static SDL_Surface* screen = NULL;
 
 static void teardown()
 {
@@ -21,6 +21,16 @@ static void teardown()
         SDL_Quit();
         screen = NULL;
     }
+}
+
+static int TranslateSDLKeyCodeToVirtual(int sdlCode)
+{
+    switch (sdlCode) {
+#define CODE(x) case SDLK_ ## x: return SDLVK_ ## x;
+#include "compat/SDLKeyCodes.h"
+#undef  CODE
+    }
+    return SDLVK_UNKNOWN;
 }
 
 // Handle Events
@@ -35,22 +45,20 @@ static void handle_events()
             case SDL_KEYDOWN:
             case SDL_KEYUP:
             {
-                SDL_Event newEvent;
-                newEvent.type = event.type;
-                newEvent.key.keysym.sym = (SDLKey)((unsigned int)event.key.keysym.sym);
-                newEvent.key.state = event.key.state;
-
-                if (newEvent.key.keysym.sym == SDLK_BACKSPACE && newEvent.key.state == SDL_PRESSED)
+                // Text Editing
+                if (event.key.keysym.sym == SDLK_BACKSPACE && event.key.state == SDL_PRESSED)
                 {
                     g_pApp->handleCharInput('\b');
                 }
-
-                if (newEvent.type == SDL_KEYDOWN && newEvent.key.keysym.unicode > 0)
+                if (event.type == SDL_KEYDOWN)
                 {
-                    g_pApp->handleCharInput(newEvent.key.keysym.unicode);
+                    Sint16 unicode = event.key.keysym.unicode;
+                    if (unicode > 0 && unicode < 0x80) {
+                        g_pApp->handleCharInput((char) unicode);
+                    }
                 }
 
-                g_pAppPlatform->handleKeyEvent(newEvent);
+                g_pAppPlatform->handleKeyEvent(TranslateSDLKeyCodeToVirtual(event.key.keysym.sym), event.key.state);
                 break;
             }
             case SDL_MOUSEBUTTONDOWN:
@@ -135,6 +143,7 @@ int main(int argc, char* argv[])
 
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_EnableUNICODE(1);
 
     Minecraft::width = 800;
     Minecraft::height = 600;

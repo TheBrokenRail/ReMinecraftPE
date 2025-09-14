@@ -223,19 +223,16 @@ void AppPlatform_sdl::gameControllerRemoved(int index)
     }
 }
 
-void AppPlatform_sdl::handleKeyEvent(const SDL_Event& event)
+void AppPlatform_sdl::handleKeyEvent(int key, uint8_t state)
 {
-    int key = event.key.keysym.sym;
-    uint8_t state = event.key.state;
-
     switch (key) {
-        case SDLK_F2:
+        case SDLVK_F2:
             if (state == SDL_PRESSED)
                 saveScreenshot("", -1, -1);
             return;
-        case SDLK_LSHIFT:
-        case SDLK_RSHIFT:
-            setShiftPressed(state == SDL_PRESSED, key == SDLK_LSHIFT);
+        case SDLVK_LSHIFT:
+        case SDLVK_RSHIFT:
+            setShiftPressed(state == SDL_PRESSED, key == SDLVK_LSHIFT);
             break;
     }
 

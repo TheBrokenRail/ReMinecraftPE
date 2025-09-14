@@ -51,7 +51,7 @@ public:
     void gameControllerAdded(int index);
     void gameControllerRemoved(int index);
 
-    void handleKeyEvent(const SDL_Event& event);
+    void handleKeyEvent(int key, uint8_t state);
     void handleButtonEvent(const SDL_Event& event);
     void handleControllerAxisEvent(const SDL_Event& event);
 
