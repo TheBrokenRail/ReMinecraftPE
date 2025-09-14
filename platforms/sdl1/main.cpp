@@ -36,8 +36,13 @@ static int TranslateSDLKeyCodeToVirtual(int sdlCode)
 // Video Mode Flags
 #define VIDEO_FLAGS (SDL_OPENGL | SDL_RESIZABLE)
 
+// Track Window Resizes
+static Uint64 last_window_resize_event = 0;
+static bool has_window_resize_event = false;
+static SDL_ResizeEvent window_resize_event;
+#define RESIZE_DELAY 500
+
 // Handle Events
-static bool window_resized = false;
 static void handle_events()
 {
     SDL_Event event;
@@ -84,8 +89,9 @@ static void handle_events()
             }
             case SDL_VIDEORESIZE:
             {
-                screen = SDL_SetVideoMode(event.resize.w, event.resize.h, 0, VIDEO_FLAGS);
-                window_resized = true;
+                last_window_resize_event = SDL_GetTicks();
+                has_window_resize_event = true;
+                window_resize_event = event.resize;
                 break;
             }
             case SDL_QUIT:
@@ -114,9 +120,10 @@ static void main_loop()
 {
     handle_events();
 
-    if (window_resized)
+    if (has_window_resize_event && ((SDL_GetTicks() - last_window_resize_event) > RESIZE_DELAY))
     {
-        window_resized = false;
+        has_window_resize_event = false;
+        screen = SDL_SetVideoMode(window_resize_event.w, window_resize_event.h, 0, VIDEO_FLAGS);
         resize();
     }
 
