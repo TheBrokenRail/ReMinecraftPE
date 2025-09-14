@@ -10,8 +10,8 @@
 class AppPlatform_sdl final : public AppPlatform
 {
 public:
-    void _init(std::string storageDir, SDL_Surface* screen);
-    AppPlatform_sdl(std::string storageDir, SDL_Surface* screen);
+    void _init(std::string storageDir, SDL_Surface** screen);
+    AppPlatform_sdl(std::string storageDir, SDL_Surface** screen);
     ~AppPlatform_sdl() override;
 
     void initSoundSystem() override;
@@ -60,7 +60,7 @@ public:
 
     void saveScreenshot(const std::string& fileName, int width, int height) override;
 
-    Texture loadTexture(const std::string& path, bool b = false) override;
+    Texture loadTexture(const std::string& path, bool b) override;
     bool doesTextureExist(const std::string& path) const override;
 
     bool hasFileSystemAccess() override;
@@ -68,7 +68,7 @@ public:
     void recenterMouse() override;
 
 private:
-    SDL_Surface* m_screen;  /* Surface */
+    SDL_Surface** m_screen;  /* Surface */
 
     SDL_Joystick* _controller;
 
@@ -86,11 +86,7 @@ private:
 
     SDL_Joystick* findGameController();
 
-    static SDL_Surface* getSurfaceForTexture(const Texture* const texture);
-
     std::string _storageDir;
 
     void ensureDirectoryExists(const char* path);
-
-    void setIcon(const Texture& icon);
 };

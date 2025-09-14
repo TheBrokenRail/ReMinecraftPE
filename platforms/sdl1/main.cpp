@@ -33,6 +33,9 @@ static int TranslateSDLKeyCodeToVirtual(int sdlCode)
     return SDLVK_UNKNOWN;
 }
 
+// Video Mode Flags
+#define VIDEO_FLAGS (SDL_OPENGL | SDL_RESIZABLE)
+
 // Handle Events
 static bool window_resized = false;
 static void handle_events()
@@ -81,7 +84,7 @@ static void handle_events()
             }
             case SDL_VIDEORESIZE:
             {
-                screen = SDL_SetVideoMode(event.resize.w, event.resize.h, 0, SDL_OPENGL | SDL_RESIZABLE);
+                screen = SDL_SetVideoMode(event.resize.w, event.resize.h, 0, VIDEO_FLAGS);
                 window_resized = true;
                 break;
             }
@@ -148,7 +151,7 @@ int main(int argc, char* argv[])
     Minecraft::width = 800;
     Minecraft::height = 600;
 
-    screen = SDL_SetVideoMode(Minecraft::width, Minecraft::height, 0, SDL_OPENGL | SDL_RESIZABLE);
+    screen = SDL_SetVideoMode(Minecraft::width, Minecraft::height, 0, VIDEO_FLAGS);
     if (!screen)
     {
         exit(EXIT_FAILURE);
@@ -178,9 +181,12 @@ int main(int argc, char* argv[])
 
     g_pApp = new NinecraftApp;
     g_pApp->m_externalStorageDir = storagePath;
-    g_pAppPlatform = new UsedAppPlatform(g_pApp->m_externalStorageDir, screen);
+    g_pAppPlatform = new UsedAppPlatform(g_pApp->m_externalStorageDir, &screen);
     g_pApp->m_pPlatform = g_pAppPlatform;
     g_pApp->init();
+
+    const char *title = g_pAppPlatform->getWindowTitle();
+    SDL_WM_SetCaption(title, title);
 
     resize();
 

@@ -124,9 +124,9 @@ void Minecraft::releaseMouse()
 	// Note, normally the platform stuff would be located within
 	// the mouse handler, but we don't have access to the platform
 	// from there!
-	if (!useController() && !isTouchscreen())
-		platform()->recenterMouse(); // don't actually try to grab or release the mouse
-	platform()->setMouseGrabbed(false);
+    platform()->setMouseGrabbed(false);
+    if (!useController() && !isTouchscreen())
+        platform()->recenterMouse(); // don't actually try to grab or release the mouse
 }
 
 void Minecraft::grabMouse()

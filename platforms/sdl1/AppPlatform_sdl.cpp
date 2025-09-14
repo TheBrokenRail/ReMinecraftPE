@@ -6,13 +6,15 @@
 
 #include "thirdparty/GL/GL.hpp"
 
+#include "stb_image_write.h"
 #include "stb_image.h"
+
 #include "AppPlatform_sdl.hpp"
 #include "common/Utils.hpp"
 #include "CustomSoundSystem.hpp"
 #include "client/player/input/Controller.hpp"
 
-AppPlatform_sdl::AppPlatform_sdl(std::string storageDir, SDL_Surface* screen)
+AppPlatform_sdl::AppPlatform_sdl(std::string storageDir, SDL_Surface** screen)
 {
     _init(storageDir, screen);
 
@@ -28,7 +30,7 @@ AppPlatform_sdl::AppPlatform_sdl(std::string storageDir, SDL_Surface* screen)
 #define _STR(x) #x
 #define STR(x) _STR(x)
 
-void AppPlatform_sdl::_init(std::string storageDir, SDL_Surface* screen)
+void AppPlatform_sdl::_init(std::string storageDir, SDL_Surface** screen)
 {
     _storageDir = storageDir;
     m_screen = screen;
@@ -59,19 +61,6 @@ void AppPlatform_sdl::initSoundSystem()
     }
 }
 
-void AppPlatform_sdl::setIcon(const Texture& icon)
-{
-    if (!icon.m_pixels) return;
-
-    SAFE_DELETE(_iconTexture);
-    if (_icon) SDL_FreeSurface(_icon);
-
-    _iconTexture = new Texture(icon);
-    _icon = getSurfaceForTexture(_iconTexture);
-
-    if (_icon) SDL_WM_SetIcon(_icon, nullptr);
-}
-
 AppPlatform_sdl::~AppPlatform_sdl()
 {
     if (_icon) SDL_FreeSurface(_icon);
@@ -86,28 +75,6 @@ SDL_Joystick* AppPlatform_sdl::findGameController()
     return nullptr;
 }
 
-SDL_Surface* AppPlatform_sdl::getSurfaceForTexture(const Texture* const texture)
-{
-    if (!texture) return nullptr;
-
-    void* pixels = texture->m_pixels;
-    int width = texture->m_width;
-    int height = texture->m_height;
-    int depth = 32;
-
-    SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(
-        pixels, width, height, depth,
-        width * 4,
-        0x000000FF, 0x0000FF00, 0x00FF0000,
-        0xFF000000
-    );
-
-    if (!surface)
-        LOG_E("Failed loading SDL_Surface from Texture: %s", SDL_GetError());
-
-    return surface;
-}
-
 int AppPlatform_sdl::checkLicense()
 {
     return 1; // we own the game!!
@@ -120,16 +87,17 @@ const char* const AppPlatform_sdl::getWindowTitle() const
 
 int AppPlatform_sdl::getScreenWidth() const
 {
-    return m_screen ? m_screen->w : 0;
+    return *m_screen ? (*m_screen)->w : 0;
 }
 
 int AppPlatform_sdl::getScreenHeight() const
 {
-    return m_screen ? m_screen->h : 0;
+    return *m_screen ? (*m_screen)->h : 0;
 }
 
 void AppPlatform_sdl::setMouseGrabbed(bool b)
 {
+    SDL_ShowCursor(b ? SDL_DISABLE : SDL_ENABLE);
     SDL_WM_GrabInput(b ? SDL_GRAB_ON : SDL_GRAB_OFF);
     clearDiff();
 }
@@ -300,35 +268,82 @@ void AppPlatform_sdl::ensureDirectoryExists(const char* path)
     }
 }
 
+// Take Screenshot
+static int save_png(const char *filename, unsigned char *pixels, int line_size, int width, int height)
+{
+    // Setup
+    stbi_flip_vertically_on_write(true);
+
+    // Write Image
+    return stbi_write_png(filename, width, height, 4, pixels, line_size);
+}
+
 /* Save */
 void AppPlatform_sdl::saveScreenshot(const std::string& filename, int width, int height)
 {
+    // Get Directory
     std::string screenshots = _storageDir + "/screenshots";
 
-    /* Filename with timecode */
+    // Get Timestamp
     time_t rawtime;
-    struct tm* timeinfo;
+    struct tm *timeinfo;
     time(&rawtime);
     timeinfo = localtime(&rawtime);
-    char timeStr[256];
-    strftime(timeStr, sizeof(timeStr), "%Y-%m-%d_%H.%M.%S", timeinfo);
+    char time[256];
+    strftime(time, sizeof (time), "%Y-%m-%d_%H.%M.%S", timeinfo);
 
+    // Ensure Screenshots Folder Exists
     ensureDirectoryExists(screenshots.c_str());
 
-    std::string path = screenshots + "/";
-    std::string file = path + timeStr + ".bmp";
+    // Prevent Overwriting Screenshots
     int num = 1;
-    while (XPL_ACCESS(file.c_str(), F_OK) != -1) {
-        file = path + SSTR(timeStr << "-" << num << ".bmp");
+    const std::string path = screenshots + "/";
+    std::string file = path + time + ".png";
+    while (XPL_ACCESS(file.c_str(), F_OK) != -1)
+    {
+        file = path + SSTR(time << "-" << num << ".png");
         num++;
     }
 
-    /* Save */
-    if (SDL_SaveBMP(m_screen, file.c_str()) != 0) {
+    // Get Image Size
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    int x = viewport[0];
+    int y = viewport[1];
+    width = viewport[2];
+    height = viewport[3];
+
+    // Get Line Size
+    int line_size = width * 4;
+    {
+        // Handle Alignment
+        int alignment;
+        glGetIntegerv(GL_PACK_ALIGNMENT, &alignment);
+        // Round
+        int diff = line_size % alignment;
+        if (diff > 0)
+        {
+            line_size += alignment - diff;
+        }
+    }
+    int size = height * line_size;
+
+    // Read Pixels
+    unsigned char *pixels = new unsigned char[size];
+    glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    // Save Image
+    if (!save_png(file.c_str(), pixels, line_size, width, height))
+    {
         LOG_E("Screenshot Failed: %s", file.c_str());
-    } else {
+    }
+    else
+    {
         LOG_I("Screenshot Saved: %s", file.c_str());
     }
+
+    // Free
+    delete[] pixels;
 }
 
 /* Load bitmap */
@@ -413,5 +428,5 @@ bool AppPlatform_sdl::hasFileSystemAccess()
 
 void AppPlatform_sdl::recenterMouse()
 {
-    SDL_WarpMouse(m_screen->w / 2, m_screen->h / 2);
+    SDL_WarpMouse((*m_screen)->w / 2, (*m_screen)->h / 2);
 }
