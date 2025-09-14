@@ -1,15 +1,13 @@
-#include <stdarg.h>
-#include <SDL/SDL.h>
-#include <GL/gl.h>
+#include <cstdarg>
+
+#include "thirdparty/GL/GL.hpp"
 
 #include "client/app/App.hpp"
-#include "desktop/AppPlatform_sdl.hpp"
+#include "AppPlatform_sdl.hpp"
 typedef AppPlatform_sdl UsedAppPlatform;
 
 #include "client/app/NinecraftApp.hpp"
 #include "client/player/input/Multitouch.hpp"
-
-static float g_fPointToPixelScale = 1.0f;
 
 UsedAppPlatform* g_pAppPlatform;
 NinecraftApp* g_pApp;
@@ -58,21 +56,19 @@ static void handle_events()
             case SDL_MOUSEBUTTONDOWN:
             case SDL_MOUSEBUTTONUP:
             {
-                const float scale = g_fPointToPixelScale;
-                MouseButtonType type = AppPlatform_sdl_base::GetMouseButtonType(event.button.button);
-                bool state = AppPlatform_sdl_base::GetMouseButtonState(event);
-                float x = event.button.x * scale;
-                float y = event.button.y * scale;
+                MouseButtonType type = AppPlatform_sdl::GetMouseButtonType(event.button.button);
+                bool state = AppPlatform_sdl::GetMouseButtonState(event);
+                float x = event.button.x;
+                float y = event.button.y;
                 Mouse::feed(type, state, x, y);
                 break;
             }
             case SDL_MOUSEMOTION:
             {
-                float scale = g_fPointToPixelScale;
-                float x = event.motion.x * scale;
-                float y = event.motion.y * scale;
+                float x = event.motion.x;
+                float y = event.motion.y;
                 Mouse::feed(BUTTON_NONE, false, x, y);
-                g_pAppPlatform->setMouseDiff(event.motion.xrel * scale, event.motion.yrel * scale);
+                g_pAppPlatform->setMouseDiff(event.motion.xrel, event.motion.yrel);
                 break;
             }
             case SDL_VIDEORESIZE:
@@ -96,9 +92,7 @@ static void resize()
     Minecraft::width  = screen->w;
     Minecraft::height = screen->h;
 
-    g_fPointToPixelScale = float(screen->w) / float(screen->w);
-
-    Minecraft::setRenderScaleMultiplier(g_fPointToPixelScale);
+    Minecraft::setRenderScaleMultiplier(1.0f);
 
     if (g_pApp)
         g_pApp->sizeUpdate(screen->w, screen->h);
@@ -142,13 +136,8 @@ int main(int argc, char* argv[])
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-#ifdef __EMSCRIPTEN__
-    Minecraft::width = std::stoi(argv[1]);
-    Minecraft::height = std::stoi(argv[2]);
-#else
     Minecraft::width = 800;
     Minecraft::height = 600;
-#endif
 
     screen = SDL_SetVideoMode(Minecraft::width, Minecraft::height, 0, SDL_OPENGL | SDL_RESIZABLE);
     if (!screen)
@@ -165,17 +154,11 @@ int main(int argc, char* argv[])
     }
 #endif
 
-#ifndef __EMSCRIPTEN__
     atexit(teardown);
-#endif
 
     std::string storagePath;
 #ifdef _WIN32
     storagePath = getenv("APPDATA");
-#elif defined(__EMSCRIPTEN__)
-    storagePath = "";
-#elif defined(ANDROID)
-    storagePath = SDL_AndroidGetExternalStoragePath();
 #else
     storagePath = getenv("HOME");
 #endif
@@ -196,6 +179,4 @@ int main(int argc, char* argv[])
     {
         main_loop();
     }
-
-    return 0;
 }

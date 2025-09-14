@@ -4,7 +4,6 @@ project(reminecraftpe-dummy)
 # Build
 add_library(reminecraftpe-sound STATIC
 	SoundSystem.cpp
-	SoundStream.cpp
 )
 
 target_link_libraries(reminecraftpe-sound PUBLIC reminecraftpe-core)

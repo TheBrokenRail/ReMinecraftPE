@@ -18,7 +18,6 @@ public:
 	bool doesTextureExist(const std::string& path) const override;
 	
 	bool hasFileSystemAccess() override;
-    std::string getPatchData() override;
 
 	void recenterMouse() override;
 	

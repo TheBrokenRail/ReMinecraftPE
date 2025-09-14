@@ -8,13 +8,11 @@
 
 #include "CustomSoundSystem.hpp"
 
-SoundSystemNL::~SoundSystemNL()
-{
-}
+SoundSystemNL::~SoundSystemNL() = default;
 
 bool SoundSystemNL::isAvailable()
 {
-	return false;
+	return true;
 }
 
 void SoundSystemNL::setListenerPos(const Vec3& pos)

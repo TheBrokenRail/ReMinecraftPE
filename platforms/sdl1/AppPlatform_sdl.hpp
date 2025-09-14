@@ -1,22 +1,18 @@
 #pragma once
 
 #include <string>
-#include "SDL/SDL.h"  // SDL 1.2 header
 
+#include "thirdparty/SDL/SDL.h"
 #include "client/app/AppPlatform.hpp"
 #include "client/player/input/Mouse.hpp"
 #include "client/player/input/Keyboard.hpp"
-#include "common/Logger.hpp"
 
-class AppPlatform_sdl_base : public AppPlatform
+class AppPlatform_sdl final : public AppPlatform
 {
 public:
     void _init(std::string storageDir, SDL_Surface* screen);
-    AppPlatform_sdl_base(std::string storageDir, SDL_Surface* screen)
-    {
-        _init(storageDir, screen);
-    }
-    ~AppPlatform_sdl_base() override;
+    AppPlatform_sdl(std::string storageDir, SDL_Surface* screen);
+    ~AppPlatform_sdl() override;
 
     void initSoundSystem() override;
 
@@ -62,10 +58,18 @@ public:
     // Read Sounds
     AssetFile readAssetFile(const std::string&, bool) const override;
 
-protected:
-    SDL_Surface* _screen;
+    void saveScreenshot(const std::string& fileName, int width, int height) override;
+
+    Texture loadTexture(const std::string& path, bool b = false) override;
+    bool doesTextureExist(const std::string& path) const override;
+
+    bool hasFileSystemAccess() override;
+
+    void recenterMouse() override;
 
 private:
+    SDL_Surface* m_screen;  /* Surface */
+
     SDL_Joystick* _controller;
 
     const Texture* _iconTexture;
@@ -84,10 +88,9 @@ private:
 
     static SDL_Surface* getSurfaceForTexture(const Texture* const texture);
 
-protected:
     std::string _storageDir;
 
-    virtual void ensureDirectoryExists(const char* path) { }
+    void ensureDirectoryExists(const char* path);
 
     void setIcon(const Texture& icon);
 };

@@ -2,7 +2,7 @@
 	path = thirdparty/coi-serviceworker
 	url = https://github.com/gzuidhof/coi-serviceworker.git
 [submodule "thirdparty/SDL-src"]
-	path = thirdparty/SDL2/src
+	path = thirdparty/SDL/src
 	url = https://github.com/libsdl-org/SDL.git
 [submodule "thirdparty/stb_image/include"]
 	path = thirdparty/stb_image/include

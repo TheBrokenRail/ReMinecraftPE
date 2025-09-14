@@ -9,7 +9,7 @@
 #pragma once
 
 #if (defined(USE_SDL) && !(SDL_MAJOR_VERSION == 1 && SDL_MINOR_VERSION == 2))
-#include "../thirdparty/SDL2/SDL2.h"
+#include "../thirdparty/SDL/SDL.h"
 
 // because SDL sucks and makes no sense and sets bit 1<<30 for some keycodes for some godamn reason
 enum eSDLVirtualKeys
